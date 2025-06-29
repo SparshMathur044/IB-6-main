@@ -1,33 +1,15 @@
-
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Brain, TrendingUp, Target, Zap, ArrowRight, Sparkles, Building2 } from 'lucide-react'
+import { Navigation } from '../components/Navigation'
 
 export function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-      {/* Header */}
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="container mx-auto px-4 py-6"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="w-8 h-8 text-primary-500" />
-            <span className="text-xl font-bold">StrategicAI</span>
-          </div>
-          <Link 
-            to="/app"
-            className="px-6 py-2 bg-primary-600 hover:bg-primary-500 rounded-lg font-medium transition-colors"
-          >
-            Get Started
-          </Link>
-        </div>
-      </motion.header>
+      <Navigation />
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 py-16">
+      <main className="pt-24 container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

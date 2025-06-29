@@ -1,13 +1,13 @@
-
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, Plus, History, ArrowLeft, Sparkles } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Plus, History, ArrowLeft, Sparkles, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { BriefForm } from '../components/BriefForm'
 import { AnalyzingScreen } from '../components/AnalyzingScreen'
 import { BriefCard } from '../components/BriefCard'
 import { BriefModal } from '../components/BriefModal'
 import { EmptyState } from '../components/EmptyState'
+import { Navigation } from '../components/Navigation'
 import { Brief, CreateBriefRequest, briefsService } from '../lib/supabase'
 
 export function App() {
@@ -82,6 +82,16 @@ export function App() {
     }
   }
 
+  const handleDeleteBrief = async (id: string) => {
+    try {
+      await briefsService.delete(id)
+      setBriefs(prev => prev.filter(brief => brief.id !== id))
+    } catch (error) {
+      console.error('Error deleting brief:', error)
+      throw error
+    }
+  }
+
   const handleShowForm = () => {
     setShowForm(true)
     setError(null)
@@ -99,43 +109,9 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-gray-950">
-      {/* Navigation */}
-      <nav className="border-b border-gray-800 sticky top-0 bg-gray-950/90 backdrop-blur-sm z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-violet-500 rounded-xl flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <span className="text-xl font-bold text-white">IntelliBrief</span>
-                <div className="text-xs text-primary-400 font-medium">Powered by Groq AI</div>
-              </div>
-            </Link>
-            <div className="flex items-center gap-4">
-              {showForm ? (
-                <button
-                  onClick={handleBackToList}
-                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Briefs
-                </button>
-              ) : (
-                <button
-                  onClick={handleShowForm}
-                  className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-primary-500/25"
-                >
-                  <Plus className="w-4 h-4" />
-                  New Brief
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="pt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AnimatePresence mode="wait">
           {showForm ? (
             <motion.div
@@ -144,6 +120,16 @@ export function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
+              <div className="flex items-center justify-between mb-8">
+                <button
+                  onClick={handleBackToList}
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Briefs
+                </button>
+              </div>
+
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -186,9 +172,18 @@ export function App() {
                     }
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-gray-400">
-                  <History className="w-5 h-5" />
-                  <span>Recent Activity</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <History className="w-5 h-5" />
+                    <span>Recent Activity</span>
+                  </div>
+                  <button
+                    onClick={handleShowForm}
+                    className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-primary-500/25"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Brief
+                  </button>
                 </div>
               </div>
 
@@ -200,6 +195,7 @@ export function App() {
                     <BriefCard 
                       key={brief.id} 
                       brief={brief}
+                      onDelete={handleDeleteBrief}
                     />
                   ))}
                 </div>

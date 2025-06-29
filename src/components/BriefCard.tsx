@@ -10,17 +10,23 @@ import {
   Briefcase,
   TrendingUp,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react'
 import { Brief } from '../lib/supabase'
 import { Link } from 'react-router-dom'
+import { BriefStatsChart } from './BriefStatsChart'
 
 interface BriefCardProps {
   brief: Brief
+  onDelete?: (id: string) => void
 }
 
-export function BriefCard({ brief }: BriefCardProps) {
+export function BriefCard({ brief, onDelete }: BriefCardProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const copyToClipboard = async (text: string, field: string) => {
     try {
@@ -29,6 +35,20 @@ export function BriefCard({ brief }: BriefCardProps) {
       setTimeout(() => setCopiedField(null), 2000)
     } catch (err) {
       console.error('Failed to copy text: ', err)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!onDelete) return
+    
+    setIsDeleting(true)
+    try {
+      await onDelete(brief.id)
+    } catch (error) {
+      console.error('Failed to delete brief:', error)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -73,13 +93,34 @@ export function BriefCard({ brief }: BriefCardProps) {
   const hasRecentNews = brief.news && brief.news.length > 0
   const recentNewsCount = hasRecentNews ? brief.news.length : 0
 
+  // Prepare chart data
+  const chartData = {
+    news: recentNewsCount,
+    jobs: brief.jobSignals?.length || 0,
+    technologies: brief.techStack?.length || 0
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
-      className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 hover:border-gray-700 rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-primary-500/5"
+      className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 hover:border-gray-700 rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-primary-500/5 relative group"
     >
+      {/* Delete Button */}
+      {onDelete && (
+        <div className="absolute top-4 right-4 z-10">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowDeleteConfirm(true)}
+            className="p-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 rounded-lg text-red-400 hover:text-red-300 transition-all duration-200 opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-start justify-between">
@@ -139,6 +180,12 @@ export function BriefCard({ brief }: BriefCardProps) {
             Strategic Summary
           </h4>
           <p className="text-gray-300 leading-relaxed line-clamp-3">{brief.summary}</p>
+        </div>
+
+        {/* Intelligence Chart */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-400 mb-3">Intelligence Overview</h4>
+          <BriefStatsChart data={chartData} />
         </div>
 
         {/* Intelligence Signals */}
@@ -220,6 +267,62 @@ export function BriefCard({ brief }: BriefCardProps) {
           </Link>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-sm mx-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Delete Brief</h3>
+                <p className="text-sm text-gray-400">This action cannot be undone</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete the brief for <strong>{brief.companyName}</strong>?
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -20,6 +19,7 @@ import { BriefSidebar } from '../components/BriefSidebar'
 import { NewsCard } from '../components/NewsCard'
 import { HiringChart } from '../components/HiringChart'
 import { RetryBriefButton } from '../components/RetryBriefButton'
+import { Navigation } from '../components/Navigation'
 
 export function BriefDetail() {
   const { id } = useParams<{ id: string }>()
@@ -63,7 +63,8 @@ export function BriefDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-        <div className="container mx-auto px-4 py-24">
+        <Navigation />
+        <div className="pt-24 container mx-auto px-4 py-24">
           <div className="flex items-center justify-center">
             <motion.div
               animate={{ rotate: 360 }}
@@ -79,7 +80,8 @@ export function BriefDetail() {
   if (!brief) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-        <div className="container mx-auto px-4 py-24">
+        <Navigation />
+        <div className="pt-24 container mx-auto px-4 py-24">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white mb-4">Brief Not Found</h1>
             <Link to="/app" className="text-primary-400 hover:text-primary-300">
@@ -93,7 +95,9 @@ export function BriefDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-      <div className="container mx-auto px-4 py-8">
+      <Navigation />
+      
+      <div className="pt-24 container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Link 

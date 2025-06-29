@@ -1,0 +1,141 @@
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { BarChart3, TrendingUp, Filter, Download } from 'lucide-react'
+import { Brief, briefsService } from '../lib/supabase'
+import { DashboardCharts } from '../components/DashboardCharts'
+import { Navigation } from '../components/Navigation'
+
+export function Dashboard() {
+  const [briefs, setBriefs] = useState<Brief[]>([])
+  const [loading, setLoading] = useState(true)
+  const [timeFilter, setTimeFilter] = useState('all')
+
+  useEffect(() => {
+    loadBriefs()
+  }, [])
+
+  const loadBriefs = async () => {
+    try {
+      setLoading(true)
+      const data = await briefsService.getAll()
+      setBriefs(data)
+    } catch (error) {
+      console.error('Error loading briefs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredBriefs = briefs.filter(brief => {
+    if (timeFilter === 'all') return true
+    
+    const briefDate = new Date(brief.createdAt)
+    const now = new Date()
+    const diffDays = Math.floor((now.getTime() - briefDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    switch (timeFilter) {
+      case 'week': return diffDays <= 7
+      case 'month': return diffDays <= 30
+      case 'quarter': return diffDays <= 90
+      default: return true
+    }
+  })
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+        <Navigation />
+        <div className="pt-24 container mx-auto px-4">
+          <div className="flex items-center justify-center py-24">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+      <Navigation />
+      
+      <div className="pt-24 container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl font-bold text-white mb-2 flex items-center gap-3"
+            >
+              <BarChart3 className="w-8 h-8 text-primary-400" />
+              Analytics Dashboard
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-gray-400 text-lg"
+            >
+              Insights and trends from your strategic intelligence briefs
+            </motion.p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Time Filter */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value)}
+                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="all">All Time</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+                <option value="quarter">Last Quarter</option>
+              </select>
+            </div>
+
+            {/* Export Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        {filteredBriefs.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <BarChart3 className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              No data available
+            </h3>
+            <p className="text-gray-400 mb-8">
+              {timeFilter === 'all' 
+                ? 'Create your first brief to see analytics' 
+                : 'No briefs found for the selected time period'
+              }
+            </p>
+          </motion.div>
+        ) : (
+          <DashboardCharts briefs={filteredBriefs} />
+        )}
+      </div>
+    </div>
+  )
+}
