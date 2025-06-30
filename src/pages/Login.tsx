@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { Brain, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 export function Login() {
@@ -11,6 +11,7 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showConfirmation, setShowConfirmation] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,18 +19,83 @@ export function Login() {
     setError('')
 
     try {
-      const { error } = isSignUp 
-        ? await signUp(email, password)
-        : await signIn(email, password)
-
-      if (error) {
-        setError(error.message)
+      if (isSignUp) {
+        const { error } = await signUp(email, password)
+        if (error) {
+          setError(error.message)
+        } else {
+          setShowConfirmation(true)
+        }
+      } else {
+        const { error } = await signIn(email, password)
+        if (error) {
+          setError(error.message)
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDemoLogin = async () => {
+    setLoading(true)
+    setError('')
+    
+    try {
+      const { error } = await signIn('demo@intellibrief.ai', 'demo123')
+      if (error) {
+        setError('Demo login failed. Please try again.')
+      }
+    } catch (err) {
+      setError('Demo login failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (showConfirmation) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
+        >
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6"
+            >
+              <CheckCircle className="w-8 h-8 text-white" />
+            </motion.div>
+            
+            <h1 className="text-2xl font-bold text-white mb-4">
+              Check Your Email
+            </h1>
+            
+            <p className="text-gray-400 mb-6">
+              Confirmation email sent. Please check your inbox to verify your account and complete the registration process.
+            </p>
+            
+            <button
+              onClick={() => {
+                setShowConfirmation(false)
+                setIsSignUp(false)
+                setEmail('')
+                setPassword('')
+              }}
+              className="w-full bg-primary-600 hover:bg-primary-500 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
@@ -67,6 +133,24 @@ export function Login() {
               <span className="text-sm">{error}</span>
             </motion.div>
           )}
+
+          {/* Demo Account Info */}
+          <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-blue-300">Try Demo Account</h3>
+              <button
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Signing in...' : 'Demo Login'}
+              </button>
+            </div>
+            <p className="text-xs text-blue-400/80">
+              Email: demo@intellibrief.ai<br />
+              Password: demo123
+            </p>
+          </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -144,15 +228,6 @@ export function Login() {
                 : "Don't have an account? Sign up"
               }
             </button>
-          </div>
-
-          {/* Demo Account */}
-          <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-            <p className="text-sm text-gray-400 text-center mb-2">Demo Account</p>
-            <p className="text-xs text-gray-500 text-center">
-              Email: demo@intellibrief.ai<br />
-              Password: demo123
-            </p>
           </div>
         </div>
       </motion.div>

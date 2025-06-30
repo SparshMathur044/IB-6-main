@@ -6,22 +6,19 @@ import {
   Home, 
   FileText, 
   BarChart3, 
-  Mail, 
-  Moon, 
-  Sun, 
   Menu, 
   X,
   User,
   Settings,
-  LogOut
+  LogOut,
+  BookOpen,
+  ExternalLink
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useTheme } from '../contexts/ThemeContext'
 
 export function Navigation() {
   const location = useLocation()
   const { user, signOut } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
@@ -29,7 +26,7 @@ export function Navigation() {
     { path: '/', label: 'Home', icon: Home },
     { path: '/app', label: 'Briefs', icon: FileText },
     { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
-    { path: '/contact', label: 'Contact', icon: Mail }
+    { path: '/docs', label: 'Docs', icon: BookOpen }
   ]
 
   const isActive = (path: string) => {
@@ -88,15 +85,17 @@ export function Navigation() {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+            {/* Built with Bolt.new Badge */}
+            <a
+              href="https://bolt.new"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-full text-orange-300 hover:text-orange-200 transition-colors text-xs font-medium"
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </motion.button>
+              <span>Built with</span>
+              <span className="font-bold">bolt.new</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
 
             {/* Profile Dropdown */}
             {user && (
