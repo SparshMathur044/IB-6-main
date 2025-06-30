@@ -54,8 +54,17 @@ export function Landing() {
     { icon: TrendingUp, value: '98%', label: 'Success Rate', color: 'orange' }
   ]
 
+  const trustedCompanies = [
+    { name: 'Microsoft', logo: 'M' },
+    { name: 'Google', logo: 'G' },
+    { name: 'Amazon', logo: 'A' },
+    { name: 'Meta', logo: 'M' },
+    { name: 'Apple', logo: 'A' },
+    { name: 'Netflix', logo: 'N' }
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-x-hidden">
+    <div className="min-h-screen bg-gray-950 text-white overflow-x-hidden">
       <Navigation />
 
       {/* Hero Section */}
@@ -69,7 +78,7 @@ export function Landing() {
             data-aos="fade-up"
             data-aos-delay="200"
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-primary-200 to-violet-400 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white">
               AI-Powered B2B Intelligence
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">
@@ -88,7 +97,7 @@ export function Landing() {
           >
             <Link
               to="/app"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500 rounded-xl font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-primary-500/25 hover:scale-105"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-primary-600 hover:bg-primary-500 rounded-xl font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-primary-500/25 hover:scale-105"
             >
               <Sparkles className="w-5 h-5" />
               Create Your First Brief
@@ -110,7 +119,7 @@ export function Landing() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 + index * 0.1 }}
-                  className="bg-gray-800/30 backdrop-blur-sm border border-gray-700 rounded-xl p-6 text-center hover:border-gray-600 transition-all duration-300"
+                  className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center hover:border-gray-700 transition-all duration-300"
                   data-aos="zoom-in"
                   data-aos-delay={600 + index * 100}
                 >
@@ -134,7 +143,7 @@ export function Landing() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + index * 0.2 }}
-                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 hover:border-gray-600 transition-all duration-300 group"
+                  className="bg-gray-900 border border-gray-800 rounded-2xl p-8 hover:border-gray-700 transition-all duration-300 group"
                   data-aos="fade-up"
                   data-aos-delay={800 + index * 200}
                 >
@@ -158,13 +167,13 @@ export function Landing() {
             })}
           </div>
 
-          {/* Parallax Section */}
+          {/* Trusted Companies Section */}
           <div 
             className="relative py-20 mb-16 overflow-hidden"
             data-aos="fade-up"
             data-aos-delay="1400"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-violet-500/10 rounded-3xl"></div>
+            <div className="absolute inset-0 bg-gray-900/50 rounded-3xl border border-gray-800"></div>
             <div className="relative z-10">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -174,27 +183,29 @@ export function Landing() {
                 className="text-center"
               >
                 <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Trusted by Forward-Thinking Teams
+                  Trusted by Industry Leaders
                 </h2>
                 <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                   Join thousands of sales professionals who use IntelliBrief to close more deals with AI-powered intelligence.
                 </p>
                 
-                {/* Animated Logo Grid */}
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center opacity-60">
-                  {['Company A', 'Company B', 'Company C', 'Company D', 'Company E', 'Company F'].map((company, index) => (
+                {/* Company Logos */}
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center">
+                  {trustedCompanies.map((company, index) => (
                     <motion.div
-                      key={company}
+                      key={company.name}
                       initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 0.6, y: 0 }}
+                      whileInView={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       viewport={{ once: true }}
-                      className="bg-gray-700/30 rounded-lg p-4 text-center"
+                      className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700 hover:border-gray-600 transition-colors"
                       data-aos="fade-up"
                       data-aos-delay={1600 + index * 100}
                     >
-                      <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-violet-500 rounded mx-auto mb-2"></div>
-                      <div className="text-xs text-gray-400">{company}</div>
+                      <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center mx-auto mb-2 text-white font-bold text-xl">
+                        {company.logo}
+                      </div>
+                      <div className="text-xs text-gray-400">{company.name}</div>
                     </motion.div>
                   ))}
                 </div>
@@ -208,7 +219,7 @@ export function Landing() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-r from-primary-500/10 to-violet-500/10 border border-primary-500/20 rounded-2xl p-8"
+            className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
             data-aos="zoom-in"
             data-aos-delay="1800"
           >
@@ -218,7 +229,7 @@ export function Landing() {
             </p>
             <Link
               to="/app"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500 rounded-lg font-medium transition-all duration-200 hover:scale-105"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-500 rounded-lg font-medium transition-all duration-200 hover:scale-105"
             >
               <Zap className="w-5 h-5" />
               Get Started Now

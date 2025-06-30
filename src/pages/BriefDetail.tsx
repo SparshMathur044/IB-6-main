@@ -20,26 +20,36 @@ import { NewsCard } from '../components/NewsCard'
 import { HiringChart } from '../components/HiringChart'
 import { RetryBriefButton } from '../components/RetryBriefButton'
 import { Navigation } from '../components/Navigation'
+import { LoadingSpinner } from '../components/LoadingSpinner'
+import { useAuth } from '../contexts/AuthContext'
 
 export function BriefDetail() {
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
   const [brief, setBrief] = useState<Brief | null>(null)
   const [loading, setLoading] = useState(true)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (id) {
+    if (id && user) {
       loadBrief(id)
     }
-  }, [id])
+  }, [id, user])
 
   const loadBrief = async (briefId: string) => {
     try {
       setLoading(true)
-      const briefData = await briefsService.getById(briefId)
-      setBrief(briefData)
+      setError(null)
+      const briefData = await briefsService.getById(briefId, user?.id)
+      if (!briefData) {
+        setError('Brief not found or you do not have permission to view it.')
+      } else {
+        setBrief(briefData)
+      }
     } catch (error) {
       console.error('Error loading brief:', error)
+      setError('Failed to load brief. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -61,16 +71,19 @@ export function BriefDetail() {
   }
 
   if (loading) {
+    return <LoadingSpinner />
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+      <div className="min-h-screen bg-gray-950 text-white">
         <Navigation />
         <div className="pt-24 container mx-auto px-4 py-24">
-          <div className="flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"
-            />
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">{error}</h1>
+            <Link to="/app" className="text-primary-400 hover:text-primary-300">
+              ← Back to Briefs
+            </Link>
           </div>
         </div>
       </div>
@@ -79,7 +92,7 @@ export function BriefDetail() {
 
   if (!brief) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+      <div className="min-h-screen bg-gray-950 text-white">
         <Navigation />
         <div className="pt-24 container mx-auto px-4 py-24">
           <div className="text-center">
@@ -94,7 +107,7 @@ export function BriefDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div className="min-h-screen bg-gray-950 text-white">
       <Navigation />
       
       <div className="pt-24 container mx-auto px-4 py-8">
@@ -125,7 +138,7 @@ export function BriefDetail() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+              className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -133,7 +146,7 @@ export function BriefDetail() {
                   Strategic Intelligence Summary
                 </h2>
               </div>
-              <div className="bg-gradient-to-r from-primary-500/10 to-violet-500/10 border border-primary-500/20 rounded-xl p-6">
+              <div className="bg-primary-500/10 border border-primary-500/20 rounded-xl p-6">
                 <p className="text-gray-300 leading-relaxed text-lg">{brief.summary}</p>
               </div>
             </motion.div>
@@ -143,7 +156,7 @@ export function BriefDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+              className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -152,7 +165,7 @@ export function BriefDetail() {
                 </h2>
                 <button
                   onClick={() => copyToClipboard(brief.pitchAngle, 'pitch')}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-violet-500/25"
+                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-violet-500/25"
                 >
                   {copiedField === 'pitch' ? (
                     <><CheckCircle className="w-4 h-4" /> Copied!</>
@@ -161,7 +174,7 @@ export function BriefDetail() {
                   )}
                 </button>
               </div>
-              <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-xl p-6">
+              <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-6">
                 <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-line">{brief.pitchAngle}</p>
               </div>
             </motion.div>
@@ -171,7 +184,7 @@ export function BriefDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+              className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -199,7 +212,7 @@ export function BriefDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+              className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
             >
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <AlertTriangle className="w-6 h-6 text-red-400" />
@@ -216,7 +229,7 @@ export function BriefDetail() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
               >
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                   <Newspaper className="w-6 h-6 text-green-400" />
@@ -239,7 +252,7 @@ export function BriefDetail() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
               >
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                   <Users className="w-6 h-6 text-blue-400" />
@@ -258,7 +271,7 @@ export function BriefDetail() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8"
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
               >
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                   <Code className="w-6 h-6 text-purple-400" />

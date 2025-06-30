@@ -28,6 +28,7 @@ export type Brief = {
   companyLogo?: string
   hiringTrends?: string
   newsTrends?: string
+  userId?: string
 }
 
 export type NewsItem = {
@@ -69,24 +70,35 @@ export type CreateBriefRequest = {
   userIntent: string
 }
 
-// Database operations with proper column names
+// Database operations with user isolation
 export const briefsService = {
-  async getAll(): Promise<Brief[]> {
-    const { data, error } = await supabase
+  async getAll(userId?: string): Promise<Brief[]> {
+    let query = supabase
       .from('briefs')
       .select('*')
       .order('createdAt', { ascending: false })
+
+    if (userId) {
+      query = query.eq('userId', userId)
+    }
+
+    const { data, error } = await query
 
     if (error) throw error
     return data || []
   },
 
-  async getById(id: string): Promise<Brief | null> {
-    const { data, error } = await supabase
+  async getById(id: string, userId?: string): Promise<Brief | null> {
+    let query = supabase
       .from('briefs')
       .select('*')
       .eq('id', id)
-      .single()
+
+    if (userId) {
+      query = query.eq('userId', userId)
+    }
+
+    const { data, error } = await query.single()
 
     if (error) {
       if (error.code === 'PGRST116') return null // Not found
@@ -95,7 +107,7 @@ export const briefsService = {
     return data
   },
 
-  async create(brief: Omit<Brief, 'id' | 'createdAt'>): Promise<Brief> {
+  async create(brief: Omit<Brief, 'id' | 'createdAt'>, userId?: string): Promise<Brief> {
     const { data, error } = await supabase
       .from('briefs')
       .insert({
@@ -114,7 +126,8 @@ export const briefsService = {
         intelligenceSources: brief.intelligenceSources,
         companyLogo: brief.companyLogo,
         hiringTrends: brief.hiringTrends,
-        newsTrends: brief.newsTrends
+        newsTrends: brief.newsTrends,
+        userId: userId
       })
       .select()
       .single()
@@ -123,23 +136,33 @@ export const briefsService = {
     return data
   },
 
-  async update(id: string, updates: Partial<Brief>): Promise<Brief> {
-    const { data, error } = await supabase
+  async update(id: string, updates: Partial<Brief>, userId?: string): Promise<Brief> {
+    let query = supabase
       .from('briefs')
       .update(updates)
       .eq('id', id)
-      .select()
-      .single()
+
+    if (userId) {
+      query = query.eq('userId', userId)
+    }
+
+    const { data, error } = await query.select().single()
 
     if (error) throw error
     return data
   },
 
-  async delete(id: string): Promise<void> {
-    const { error } = await supabase
+  async delete(id: string, userId?: string): Promise<void> {
+    let query = supabase
       .from('briefs')
       .delete()
       .eq('id', id)
+
+    if (userId) {
+      query = query.eq('userId', userId)
+    }
+
+    const { error } = await query
 
     if (error) throw error
   }

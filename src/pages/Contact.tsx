@@ -4,7 +4,7 @@ import { Navigation } from '../components/Navigation'
 
 export function Contact() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div className="min-h-screen bg-gray-950 text-white">
       <Navigation />
       
       <div className="pt-24 container mx-auto px-4 py-8">
@@ -30,7 +30,7 @@ export function Contact() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8"
+              className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
             >
               <h2 className="text-2xl font-semibold text-white mb-6">Send us a message</h2>
               
@@ -95,7 +95,7 @@ export function Contact() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-primary-500/25"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-primary-500/25"
                 >
                   <Send className="w-5 h-5" />
                   Send Message
@@ -192,7 +192,7 @@ export function Contact() {
               </div>
 
               {/* FAQ Link */}
-              <div className="bg-gradient-to-r from-primary-500/10 to-violet-500/10 border border-primary-500/20 rounded-xl p-6">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
                 <h3 className="text-lg font-medium text-white mb-2">Frequently Asked Questions</h3>
                 <p className="text-gray-400 mb-4">
                   Find quick answers to common questions about IntelliBrief.

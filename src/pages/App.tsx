@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, History, ArrowLeft, Sparkles, Trash2 } from 'lucide-react'
+import { Plus, History, ArrowLeft, Sparkles, Download } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { BriefForm } from '../components/BriefForm'
 import { AnalyzingScreen } from '../components/AnalyzingScreen'
@@ -8,30 +8,39 @@ import { BriefCard } from '../components/BriefCard'
 import { BriefModal } from '../components/BriefModal'
 import { EmptyState } from '../components/EmptyState'
 import { Navigation } from '../components/Navigation'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 import { Brief, CreateBriefRequest, briefsService } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { exportToPDF, exportToCSV } from '../utils/exportUtils'
 
 export function App() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [briefs, setBriefs] = useState<Brief[]>([])
   const [selectedBrief, setSelectedBrief] = useState<Brief | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [currentAnalysis, setCurrentAnalysis] = useState<{ companyName: string; website?: string } | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadBriefs()
-  }, [])
+    if (user) {
+      loadBriefs()
+    }
+  }, [user])
 
   const loadBriefs = async () => {
     try {
-      const data = await briefsService.getAll()
+      setIsLoading(true)
+      const data = await briefsService.getAll(user?.id)
       setBriefs(data)
     } catch (err) {
       console.error('Error loading briefs:', err)
       setError('Failed to load briefs')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -48,7 +57,10 @@ export function App() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          ...requestData,
+          userId: user?.id
+        }),
       })
 
       if (!response.ok) {
@@ -84,11 +96,21 @@ export function App() {
 
   const handleDeleteBrief = async (id: string) => {
     try {
-      await briefsService.delete(id)
+      await briefsService.delete(id, user?.id)
       setBriefs(prev => prev.filter(brief => brief.id !== id))
     } catch (error) {
       console.error('Error deleting brief:', error)
       throw error
+    }
+  }
+
+  const handleExport = (format: 'pdf' | 'csv') => {
+    if (briefs.length === 0) return
+    
+    if (format === 'pdf') {
+      exportToPDF(briefs)
+    } else {
+      exportToCSV(briefs)
     }
   }
 
@@ -105,6 +127,10 @@ export function App() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedBrief(null)
+  }
+
+  if (isLoading && !isAnalyzing) {
+    return <LoadingSpinner />
   }
 
   return (
@@ -173,13 +199,31 @@ export function App() {
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
+                  {briefs.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleExport('csv')}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white rounded-lg transition-all duration-200 font-medium text-sm"
+                      >
+                        <Download className="w-4 h-4" />
+                        Export CSV
+                      </button>
+                      <button
+                        onClick={() => handleExport('pdf')}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white rounded-lg transition-all duration-200 font-medium text-sm"
+                      >
+                        <Download className="w-4 h-4" />
+                        Export HTML
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-gray-400">
                     <History className="w-5 h-5" />
                     <span>Recent Activity</span>
                   </div>
                   <button
                     onClick={handleShowForm}
-                    className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-violet-600 hover:from-primary-500 hover:to-violet-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-primary-500/25"
+                    className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-primary-500/25"
                   >
                     <Plus className="w-4 h-4" />
                     New Brief

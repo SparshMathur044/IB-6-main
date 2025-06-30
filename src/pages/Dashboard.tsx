@@ -1,23 +1,29 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { BarChart3, TrendingUp, Filter, Download } from 'lucide-react'
+import { BarChart3, Filter, Download } from 'lucide-react'
 import { Brief, briefsService } from '../lib/supabase'
 import { DashboardCharts } from '../components/DashboardCharts'
 import { Navigation } from '../components/Navigation'
+import { LoadingSpinner } from '../components/LoadingSpinner'
+import { useAuth } from '../contexts/AuthContext'
+import { exportToPDF, exportToCSV } from '../utils/exportUtils'
 
 export function Dashboard() {
+  const { user } = useAuth()
   const [briefs, setBriefs] = useState<Brief[]>([])
   const [loading, setLoading] = useState(true)
   const [timeFilter, setTimeFilter] = useState('all')
 
   useEffect(() => {
-    loadBriefs()
-  }, [])
+    if (user) {
+      loadBriefs()
+    }
+  }, [user])
 
   const loadBriefs = async () => {
     try {
       setLoading(true)
-      const data = await briefsService.getAll()
+      const data = await briefsService.getAll(user?.id)
       setBriefs(data)
     } catch (error) {
       console.error('Error loading briefs:', error)
@@ -41,25 +47,22 @@ export function Dashboard() {
     }
   })
 
+  const handleExport = (format: 'pdf' | 'csv') => {
+    if (filteredBriefs.length === 0) return
+    
+    if (format === 'pdf') {
+      exportToPDF(filteredBriefs)
+    } else {
+      exportToCSV(filteredBriefs)
+    }
+  }
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-        <Navigation />
-        <div className="pt-24 container mx-auto px-4">
-          <div className="flex items-center justify-center py-24">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full"
-            />
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div className="min-h-screen bg-gray-950 text-white">
       <Navigation />
       
       <div className="pt-24 container mx-auto px-4 py-8">
@@ -100,15 +103,29 @@ export function Dashboard() {
               </select>
             </div>
 
-            {/* Export Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </motion.button>
+            {/* Export Buttons */}
+            {filteredBriefs.length > 0 && (
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleExport('csv')}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  CSV
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleExport('pdf')}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  HTML
+                </motion.button>
+              </div>
+            )}
           </div>
         </div>
 
